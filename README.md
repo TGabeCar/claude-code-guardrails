@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/TGabeCar/claude-code-guardrails/actions/workflows/ci.yml/badge.svg)](https://github.com/TGabeCar/claude-code-guardrails/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue)
+![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)
 
 **Config-driven safety hooks for [Claude Code](https://docs.claude.com/en/docs/claude-code).** One dependency-free Python script, one JSON file. It keeps an agent out of your secrets, stops it from sending mail or wiping live data without a human, and keeps personal data out of committed logs.
 
@@ -86,7 +86,7 @@ python -m pip install pytest
 python -m pytest -q
 ```
 
-CI runs the suite on Linux and Windows across Python 3.9–3.13, plus a gitleaks secret scan.
+CI runs the suite on Linux and Windows across Python 3.10–3.13, plus a gitleaks secret scan.
 
 ## License
 
