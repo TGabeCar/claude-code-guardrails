@@ -1,0 +1,28 @@
+{
+  "protected_paths": ["~/.ssh/", "~/.aws/", "~/.secrets/", ".env", ".env.local", "*.pem", "id_rsa"],
+  "tools": {
+    "deny": [
+      { "match": "mcp__*__send_email", "reason": "Humans send email. Draft it to a file and stop." },
+      { "match": "mcp__*__post_message", "reason": "Humans post to chat. Draft it to a file and stop." }
+    ],
+    "allow": [
+      { "match": "mcp__*__execute_api", "when": { "endpoint": "^GET " }, "reason": "Read-only API lookup." }
+    ],
+    "ask": [
+      { "match": "mcp__*__execute_api", "reason": "Live API write. Approve only if you asked for this change." },
+      { "match": "mcp__*__run_command", "unless_read_only_shell": true, "reason": "Remote command that may write." },
+      { "match": "mcp__*__delete_*", "reason": "Deletes live data." }
+    ]
+  },
+  "bypass_ask_becomes_deny": true,
+  "pii": {
+    "paths": ["logs/*.md", "docs/CHANGELOG.md"],
+    "allowed_email_domains": ["example.com"]
+  },
+  "session_start": {
+    "expected_cwd": null,
+    "warn_uncommitted": true,
+    "rules_dir": ".claude/rules"
+  },
+  "instructions_log": { "dir": ".claude/logs" }
+}
