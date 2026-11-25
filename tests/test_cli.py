@@ -1,3 +1,4 @@
+import io
 import json
 import os
 import re
@@ -106,3 +107,31 @@ def test_version_matches_package():
     import guardrails
     assert guardrails.__version__ == guard.__version__
     assert re.fullmatch(r"\d+\.\d+\.\d+", guard.__version__)
+
+
+def test_explain_stdin_replays_protected_read(tmp_path, capsys, monkeypatch):
+    monkeypatch.delenv("GUARDRAILS_CONFIG", raising=False)
+    payload = {"tool_name": "Read", "tool_input": {"file_path": ".env"}, "session_id": "synthetic"}
+    monkeypatch.setattr("sys.stdin", io.StringIO(json.dumps(payload)))
+    code, out = run(capsys, "explain", "-", "--dir", str(tmp_path))
+    assert code == 0
+    assert "Read" in out and "DENY" in out and "protected_paths" in out
+
+
+def test_explain_stdin_preserves_permission_mode(tmp_path, capsys, monkeypatch):
+    monkeypatch.delenv("GUARDRAILS_CONFIG", raising=False)
+    run(capsys, "init", "--preset", "production", "--dir", str(tmp_path))
+    payload = {"tool_name": "mcp__crm__delete_contact", "tool_input": {},
+               "permission_mode": "bypassPermissions"}
+    monkeypatch.setattr("sys.stdin", io.StringIO(json.dumps(payload)))
+    code, out = run(capsys, "explain", "-", "--dir", str(tmp_path))
+    assert code == 0 and "DENY" in out and "bypass" in out
+
+
+@pytest.mark.parametrize("raw", ["{broken", "[]", "null", '{}',
+                                      '{"tool_name": "Read", "tool_input": []}'])
+def test_explain_stdin_rejects_invalid_payload(tmp_path, capsys, monkeypatch, raw):
+    monkeypatch.setattr("sys.stdin", io.StringIO(raw))
+    code, out = run(capsys, "explain", "-", "--dir", str(tmp_path))
+    assert code == 2
+    assert "Input" in out
