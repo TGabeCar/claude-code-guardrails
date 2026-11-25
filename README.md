@@ -1,7 +1,6 @@
 # claude-code-guardrails
 
 [![CI](https://github.com/TGabeCar/claude-code-guardrails/actions/workflows/ci.yml/badge.svg)](https://github.com/TGabeCar/claude-code-guardrails/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/claude-code-guardrails.svg)](https://pypi.org/project/claude-code-guardrails/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)
 ![Dependencies: 0](https://img.shields.io/badge/dependencies-0-brightgreen)
@@ -15,7 +14,7 @@ Born from running Claude Code as a daily operations agent (scheduled jobs, live 
 ## 30-second install
 
 ```bash
-pip install claude-code-guardrails        # or: pipx install claude-code-guardrails
+pip install git+https://github.com/TGabeCar/claude-code-guardrails
 cd your-project
 claude-guardrails init --preset solo      # or team / production
 claude-guardrails doctor                  # verify, then restart Claude Code
