@@ -117,3 +117,14 @@ CI runs the suite on Linux and Windows across Python 3.10–3.13, plus a gitleak
 ## License
 
 MIT
+
+
+Replay a recorded `PreToolUse` JSON payload from stdin without executing its tool:
+
+```sh
+printf '%s\n' '{"tool_name":"Read","tool_input":{"file_path":".env"}}' | claude-guardrails explain -
+```
+
+This evaluates the full payload, including its `permission_mode`, against the
+selected `--dir` configuration. `--bypass` can override the mode for simulation.
+Malformed JSON or invalid payload shapes exit with status 2.

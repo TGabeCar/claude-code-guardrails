@@ -108,17 +108,24 @@ def cmd_init(args: argparse.Namespace) -> int:
 def cmd_explain(args: argparse.Namespace) -> int:
     root = Path(args.dir).resolve()
     try:
-        ti = json.loads(args.input) if args.input else {}
+        if args.tool == "-":
+            data = json.load(sys.stdin)
+            if not isinstance(data, dict) or not isinstance(data.get("tool_name"), str) or not data["tool_name"].strip():
+                raise ValueError("payload must be an object with a non-empty tool_name")
+            if not isinstance(data.get("tool_input", {}), dict):
+                raise ValueError("tool_input must be an object")
+        else:
+            ti = json.loads(args.input) if args.input else {}
+            data = {"tool_name": args.tool, "tool_input": ti}
     except ValueError as exc:
-        print(paint(f"Input is not JSON: {exc}", RED))
+        print(paint(f"Input is not a valid tool call: {exc}", RED))
         return 2
     os.environ.setdefault("CLAUDE_PROJECT_DIR", str(root))
     cfg = guard.load_config(root)
-    data = {"tool_name": args.tool, "tool_input": ti}
     if args.bypass:
         data["permission_mode"] = "bypassPermissions"
     verdict = guard.evaluate(data, cfg, root)
-    print(f"{paint(args.tool, BOLD)} {paint(json.dumps(ti), DIM)}")
+    print(f"{paint(data['tool_name'], BOLD)} {paint(json.dumps(data.get('tool_input', {})), DIM)}")
     if not verdict:
         print(f"  {paint(' PASS ', '47;30;1')} no rule matched; Claude Code's normal permissions apply")
         return 0
@@ -203,7 +210,7 @@ def main(argv: list[str] | None = None) -> int:
     s.set_defaults(fn=cmd_init)
 
     s = sub.add_parser("explain", help="show what the guard decides for one tool call")
-    s.add_argument("tool")
+    s.add_argument("tool", help="tool name, or - to read a full hook payload from stdin")
     s.add_argument("input", nargs="?", default="{}")
     s.add_argument("--bypass", action="store_true", help="simulate bypassPermissions mode")
     s.add_argument("--dir", default=".")
