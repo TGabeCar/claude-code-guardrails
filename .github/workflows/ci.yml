@@ -20,8 +20,25 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      - run: python -m pip install pytest
+      - run: python -m pip install -e ".[dev]"
       - run: python -m pytest -q
+      - name: CLI smoke test
+        shell: bash
+        run: |
+          mkdir smoke && claude-guardrails init --preset production --dir smoke
+          claude-guardrails doctor --dir smoke
+          claude-guardrails explain Read '{"file_path": ".env"}' --dir smoke | grep -q DENY
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install build twine
+      - run: python -m build
+      - run: python -m twine check dist/*
 
   secret-scan:
     runs-on: ubuntu-latest
@@ -32,3 +49,4 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: "false"

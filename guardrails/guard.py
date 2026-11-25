@@ -27,6 +27,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+__version__ = "0.2.0"
+
 DEFAULT_CONFIG: dict[str, Any] = {
     "protected_paths": ["~/.ssh/", "~/.aws/", ".env", "*.pem", "id_rsa"],
     "tools": {"deny": [], "ask": [], "allow": []},
@@ -238,7 +240,8 @@ def check_pii(cfg: dict, root: Path, tool: str, ti: dict) -> str | None:
 
 
 # ------------------------------------------------------------------ modes
-def pre(data: dict, cfg: dict, root: Path) -> None:
+def evaluate(data: dict, cfg: dict, root: Path) -> tuple[str, str, str] | None:
+    """Decide a PreToolUse call. Returns (decision, reason, guard) or None to pass through."""
     tool = str(data.get("tool_name") or "")
     ti = data.get("tool_input") if isinstance(data.get("tool_input"), dict) else {}
 
@@ -248,20 +251,25 @@ def pre(data: dict, cfg: dict, root: Path) -> None:
         blob = " ".join(strings_in(ti))
     hit = protected_hit(blob, list(cfg.get("protected_paths") or []))
     if hit:
-        decide("deny", f"Blocked: '{hit}' is a protected path. Claude never reads, lists, searches or touches it.")
-        return
+        return "deny", f"Blocked: '{hit}' is a protected path. Claude never reads, lists, searches or touches it.", "protected_paths"
 
     verdict = check_tools(cfg, tool, ti)
     if verdict:
         decision, why = verdict
         if decision == "ask" and cfg.get("bypass_ask_becomes_deny") and data.get("permission_mode") == "bypassPermissions":
-            decision, why = "deny", f"Blocked in bypass mode (nobody can approve): {why}"
-        decide(decision, why)
-        return
+            return "deny", f"Blocked in bypass mode (nobody can approve): {why}", "bypass_ask_becomes_deny"
+        return decision, why, f"tools.{decision}"
 
     reason = check_pii(cfg, root, tool, ti)
     if reason:
-        decide("deny", reason)
+        return "deny", reason, "pii"
+    return None
+
+
+def pre(data: dict, cfg: dict, root: Path) -> None:
+    verdict = evaluate(data, cfg, root)
+    if verdict:
+        decide(verdict[0], verdict[1])
 
 
 def uncommitted(root: Path) -> list[str] | None:

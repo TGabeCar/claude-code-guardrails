@@ -1,0 +1,15 @@
+{
+  "_about": "Solo dev: keep the agent out of your secrets and stop it from sending anything as you.",
+  "protected_paths": ["~/.ssh/", "~/.aws/", "~/.gnupg/", "~/.secrets/", ".env", ".env.*", "*.pem", "*.key", "id_rsa", "id_ed25519"],
+  "tools": {
+    "deny": [
+      { "match": "mcp__*__send_*", "reason": "You send messages yourself. Draft it to a file and stop." },
+      { "match": "mcp__*__post_*", "reason": "You post yourself. Draft it to a file and stop." }
+    ],
+    "allow": [],
+    "ask": [
+      { "match": "Bash", "when": { "command": "(^|[;&|]\\s*)(rm\\s+-[a-zA-Z]*r[a-zA-Z]*f|git\\s+push\\s+.*--force|git\\s+reset\\s+--hard)" }, "reason": "Destructive shell command." }
+    ]
+  },
+  "bypass_ask_becomes_deny": true
+}

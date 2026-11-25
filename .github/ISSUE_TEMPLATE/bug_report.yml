@@ -1,0 +1,30 @@
+name: Bug report
+description: A rule fired when it shouldn't, or didn't fire when it should
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Paste the `claude-guardrails explain ...` command and its output if you can.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant part of guardrails.json
+      render: jsonc
+  - type: input
+    id: env
+    attributes:
+      label: OS, Python and Claude Code versions
+      placeholder: "Windows 11, Python 3.12, Claude Code 2.x"
+  - type: markdown
+    attributes:
+      value: "Found a way to get **past** a rule? Please use private vulnerability reporting instead (see SECURITY.md)."

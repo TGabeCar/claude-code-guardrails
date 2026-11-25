@@ -1,0 +1,19 @@
+{
+  "_about": "Team repo: solo rules, plus no personal data in committed logs and a check that rules actually loaded.",
+  "protected_paths": ["~/.ssh/", "~/.aws/", "~/.gnupg/", "~/.secrets/", ".env", ".env.*", "*.pem", "*.key", "id_rsa", "id_ed25519", "secrets/"],
+  "tools": {
+    "deny": [
+      { "match": "mcp__*__send_*", "reason": "Humans send messages. Draft it to a file and stop." },
+      { "match": "mcp__*__post_*", "reason": "Humans post. Draft it to a file and stop." }
+    ],
+    "allow": [],
+    "ask": [
+      { "match": "Bash", "when": { "command": "(^|[;&|]\\s*)(rm\\s+-[a-zA-Z]*r[a-zA-Z]*f|git\\s+push|git\\s+reset\\s+--hard)" }, "reason": "Pushes or destructive commands need a human." },
+      { "match": "mcp__*__delete_*", "reason": "Deletes shared data." }
+    ]
+  },
+  "bypass_ask_becomes_deny": true,
+  "pii": { "paths": ["logs/*.md", "docs/*LOG*.md", "CHANGELOG.md"], "allowed_email_domains": ["example.com"] },
+  "session_start": { "warn_uncommitted": true, "rules_dir": ".claude/rules" },
+  "instructions_log": { "dir": ".claude/logs" }
+}

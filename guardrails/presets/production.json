@@ -1,0 +1,29 @@
+{
+  "_about": "Agent with live access (APIs, billing, infra): reads flow freely, every write asks, money and sends never happen.",
+  "protected_paths": ["~/.ssh/", "~/.aws/", "~/.azure/", "~/.kube/", "~/.gnupg/", "~/.secrets/", ".env", ".env.*", "*.pem", "*.key", "*.pfx", "id_rsa", "id_ed25519", "secrets/", "credentials.json"],
+  "tools": {
+    "deny": [
+      { "match": "mcp__*__send_*", "reason": "Humans send messages. Draft it to a file and stop." },
+      { "match": "mcp__*__post_*", "reason": "Humans post. Draft it to a file and stop." },
+      { "match": "mcp__*__*refund*", "reason": "Money movement is human-only." },
+      { "match": "mcp__*__*payment*", "reason": "Money movement is human-only." },
+      { "match": "mcp__*__*transfer*", "reason": "Money movement is human-only." },
+      { "match": "Bash", "when": { "command": "(terraform|tofu)\\s+(apply|destroy)|kubectl\\s+(delete|apply|scale)|DROP\\s+(TABLE|DATABASE)" }, "reason": "Infra and schema changes go through your pipeline, not the agent." }
+    ],
+    "allow": [
+      { "match": "mcp__*__execute_api", "when": { "endpoint": "^GET " }, "reason": "Read-only API lookup." }
+    ],
+    "ask": [
+      { "match": "mcp__*__execute_api", "reason": "Live API write. Approve only if you asked for this change." },
+      { "match": "mcp__*__run_command", "unless_read_only_shell": true, "reason": "Remote command that may write." },
+      { "match": "mcp__*__create_*", "reason": "Creates live records." },
+      { "match": "mcp__*__update_*", "reason": "Changes live records." },
+      { "match": "mcp__*__delete_*", "reason": "Deletes live records." },
+      { "match": "Bash", "when": { "command": "(^|[;&|]\\s*)(rm\\s+-[a-zA-Z]*r[a-zA-Z]*f|git\\s+push|git\\s+reset\\s+--hard|curl\\s+.*-X\\s*(POST|PUT|PATCH|DELETE))" }, "reason": "Pushes, deletes or live HTTP writes need a human." }
+    ]
+  },
+  "bypass_ask_becomes_deny": true,
+  "pii": { "paths": ["logs/*.md", "docs/*LOG*.md", "CHANGELOG.md", "reports/*.md"], "allowed_email_domains": ["example.com"] },
+  "session_start": { "warn_uncommitted": true, "rules_dir": ".claude/rules" },
+  "instructions_log": { "dir": ".claude/logs" }
+}

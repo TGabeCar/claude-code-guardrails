@@ -1,0 +1,21 @@
+name: Feature or preset idea
+description: A new guard, rule type or preset
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What should the agent be stopped from (or allowed to) do?
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Example tool call
+      description: Tool name and input JSON, as Claude Code would send it.
+      render: json
+  - type: textarea
+    id: idea
+    attributes:
+      label: How you'd configure it
+      render: jsonc
