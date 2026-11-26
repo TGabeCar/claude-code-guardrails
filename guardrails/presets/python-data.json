@@ -1,0 +1,23 @@
+{
+  "_about": "Data work (notebooks, warehouses, cloud SDKs): cloud and warehouse credentials locked, read-only queries flow, DROP / TRUNCATE / MERGE and other warehouse writes ask.",
+  "protected_paths": ["~/.ssh/", "~/.aws/", "~/.config/gcloud/", "~/.databrickscfg", ".dbt/profiles.yml", "~/.gnupg/", "~/.secrets/", ".env", ".env.*", "*.pem", "*.key", "id_rsa", "id_ed25519"],
+  "tools": {
+    "deny": [
+      { "match": "mcp__*__send_*", "reason": "You send messages yourself. Draft it to a file and stop." },
+      { "match": "mcp__*__post_*", "reason": "You post yourself. Draft it to a file and stop." }
+    ],
+    "allow": [
+      { "match": "mcp__*__*query*", "when": { "query": "(?is)^\\s*(select|with|show|describe|desc|explain)\\b(?!.*\\b(drop|truncate|merge|delete|insert|update|alter|create|grant|revoke|copy|call|exec|execute)\\b)" }, "reason": "Read-only warehouse query." },
+      { "match": "mcp__*__*query*", "when": { "sql": "(?is)^\\s*(select|with|show|describe|desc|explain)\\b(?!.*\\b(drop|truncate|merge|delete|insert|update|alter|create|grant|revoke|copy|call|exec|execute)\\b)" }, "reason": "Read-only warehouse query." },
+      { "match": "mcp__*__*sql*", "when": { "query": "(?is)^\\s*(select|with|show|describe|desc|explain)\\b(?!.*\\b(drop|truncate|merge|delete|insert|update|alter|create|grant|revoke|copy|call|exec|execute)\\b)" }, "reason": "Read-only warehouse query." },
+      { "match": "mcp__*__*sql*", "when": { "sql": "(?is)^\\s*(select|with|show|describe|desc|explain)\\b(?!.*\\b(drop|truncate|merge|delete|insert|update|alter|create|grant|revoke|copy|call|exec|execute)\\b)" }, "reason": "Read-only warehouse query." }
+    ],
+    "ask": [
+      { "match": "mcp__*__*query*", "reason": "SQL that is not plainly read-only (DROP, TRUNCATE, MERGE or another write). Approve only if you asked for this change." },
+      { "match": "mcp__*__*sql*", "reason": "SQL that is not plainly read-only (DROP, TRUNCATE, MERGE or another write). Approve only if you asked for this change." },
+      { "match": "Bash", "when": { "command": "(?i:\\b(drop\\s+(table|view|schema|database)|truncate\\s+table|merge\\s+into)\\b)|\\bTRUNCATE\\s+\\w" }, "reason": "Warehouse DROP / TRUNCATE / MERGE from the shell. Approve only if you asked for this change." },
+      { "match": "Bash", "when": { "command": "(^|[;&|]\\s*)(rm\\s+-[a-zA-Z]*r[a-zA-Z]*f|git\\s+push\\s+.*--force|git\\s+reset\\s+--hard)" }, "reason": "Destructive shell command." }
+    ]
+  },
+  "bypass_ask_becomes_deny": true
+}

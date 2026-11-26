@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **New `python-data` preset** for notebooks and warehouses: protects `~/.config/gcloud/`, `~/.databrickscfg` and `.dbt/profiles.yml`, allows read-only queries in SQL MCP tools, and asks before `DROP` / `TRUNCATE` / `MERGE` (and other writes) in Bash or SQL MCP tools
+
 ## 0.2.0 (2026-11-25)
 
 - **New `claude-guardrails` CLI**

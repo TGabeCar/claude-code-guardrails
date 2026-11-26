@@ -16,7 +16,7 @@ Born from running Claude Code as a daily operations agent (scheduled jobs, live 
 ```bash
 pip install git+https://github.com/TGabeCar/claude-code-guardrails
 cd your-project
-claude-guardrails init --preset solo      # or team / production
+claude-guardrails init --preset solo      # or team / production / python-data
 claude-guardrails doctor                  # verify, then restart Claude Code
 ```
 
@@ -43,6 +43,7 @@ Every decision carries a reason Claude can read and act on. The hook fails open 
 | `solo` | Your own machine | Secrets locked, no sending or posting as you, asks before `rm -rf` / force-push |
 | `team` | Shared repos | + PII guard on logs, asks before any `git push`, rule-load check and audit log |
 | `production` | Agents with live access | + money movement denied, `terraform apply` / `kubectl delete` denied, every live write asks, reads flow freely |
+| `python-data` | Notebooks and warehouses | Secrets plus `~/.config/gcloud/`, `~/.databrickscfg`, `.dbt/profiles.yml` locked; read-only SQL flows, `DROP` / `TRUNCATE` / `MERGE` and other writes ask (Bash and SQL MCP tools) |
 
 `claude-guardrails presets` lists them; the JSON lives in [`guardrails/presets/`](guardrails/presets).
 

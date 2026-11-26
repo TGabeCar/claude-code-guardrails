@@ -1,6 +1,6 @@
 """claude-guardrails: install, test and check the guardrails hooks.
 
-  claude-guardrails init [--preset solo|team|production] [--dir PATH] [--force]
+  claude-guardrails init [--preset solo|team|production|python-data] [--dir PATH] [--force]
   claude-guardrails explain TOOL [JSON_INPUT] [--bypass] [--dir PATH]
   claude-guardrails doctor [--dir PATH]
   claude-guardrails presets
