@@ -12,7 +12,7 @@ def run(capsys, *argv):
     return code, capsys.readouterr().out
 
 
-@pytest.mark.parametrize("preset", ["solo", "team", "production"])
+@pytest.mark.parametrize("preset", ["solo", "team", "production", "python-data"])
 def test_presets_are_valid_and_deny_env(tmp_path, preset):
     cfg = cli.presets()[preset]
     assert cfg["_about"]
@@ -22,6 +22,32 @@ def test_presets_are_valid_and_deny_env(tmp_path, preset):
                 re.compile(regex)
     data = {"tool_name": "Read", "tool_input": {"file_path": "app/.env"}}
     assert guard.evaluate(data, {**guard.DEFAULT_CONFIG, **cfg}, tmp_path)[0] == "deny"
+
+
+@pytest.mark.parametrize(
+    "tool, tool_input, expected",
+    [
+        ("Read", {"file_path": "~/.config/gcloud/application_default_credentials.json"}, "deny"),
+        ("Bash", {"command": "cat ~/.databrickscfg"}, "deny"),
+        ("Read", {"file_path": "/home/me/.dbt/profiles.yml"}, "deny"),
+        ("mcp__warehouse__run_query", {"query": "SELECT id, total FROM orders LIMIT 10"}, "allow"),
+        ("mcp__postgres__query", {"sql": "with t as (select 1) select * from t"}, "allow"),
+        ("mcp__dbt__execute_sql", {"sql": "DESCRIBE TABLE analytics.orders"}, "allow"),
+        ("mcp__warehouse__run_query", {"query": "DROP TABLE analytics.orders"}, "ask"),
+        ("mcp__warehouse__run_query", {"query": "select 1; truncate table analytics.orders"}, "ask"),
+        ("mcp__dbt__execute_sql", {"sql": "MERGE INTO dim_users USING stg_users ON ..."}, "ask"),
+        ("mcp__postgres__query", {"sql": "INSERT INTO events VALUES (1)"}, "ask"),
+        ("Bash", {"command": "bq query --use_legacy_sql=false 'DROP TABLE ds.orders'"}, "ask"),
+        ("Bash", {"command": "psql -c 'truncate table events'"}, "ask"),
+        ("Bash", {"command": "snowsql -q \"merge into dim_users using stg_users on ...\""}, "ask"),
+        ("Bash", {"command": "git merge feature/etl"}, None),
+        ("Bash", {"command": "python -m pytest -q"}, None),
+    ],
+)
+def test_python_data_preset(tmp_path, tool, tool_input, expected):
+    cfg = {**guard.DEFAULT_CONFIG, **cli.presets()["python-data"]}
+    verdict = guard.evaluate({"tool_name": tool, "tool_input": tool_input}, cfg, tmp_path)
+    assert (verdict[0] if verdict else None) == expected
 
 
 def test_init_writes_everything_and_doctor_passes(tmp_path, capsys):
@@ -99,7 +125,7 @@ def test_explain_rejects_bad_json(tmp_path, capsys):
 def test_presets_command_lists_all(capsys):
     code, out = run(capsys, "presets")
     assert code == 0
-    assert all(name in out for name in ("solo", "team", "production"))
+    assert all(name in out for name in ("solo", "team", "production", "python-data"))
 
 
 def test_version_matches_package():
